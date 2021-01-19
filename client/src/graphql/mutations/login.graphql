@@ -1,0 +1,12 @@
+# Write your query or mutation here
+mutation Login($code: String!) {
+  login(code: $code) {
+    accessToken
+    user {
+      id
+      displayName
+      spotifyId
+      tokenVersion
+    }
+  }
+}

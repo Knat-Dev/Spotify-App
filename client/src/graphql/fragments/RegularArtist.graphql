@@ -1,0 +1,4 @@
+fragment RegularArtist on Artist {
+  spotifyId
+  name
+}

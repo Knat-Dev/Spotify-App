@@ -1,0 +1,10 @@
+query GetTopArtistsAndTracks {
+  getTopArtistsAndTracks {
+    artists {
+      ...RegularArtist
+    }
+    tracks {
+      ...RegularTrack
+    }
+  }
+}

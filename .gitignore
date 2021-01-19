@@ -1,0 +1,10 @@
+/*/node_modules
+/client/public
+server/.env
+client/.env
+client/codegen.yml
+client/.eslintcache
+client/yarn.lock
+server/package-lock.json
+server/yarn-error.log
+server/yarn.lock

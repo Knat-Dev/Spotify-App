@@ -1,0 +1,5 @@
+fragment RegularTrack on Track {
+  spotifyId
+  name
+  artistId
+}
