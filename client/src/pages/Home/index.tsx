@@ -8,10 +8,13 @@ import {
   Grid,
   List,
   ListItem,
+  Text,
 } from '@chakra-ui/react';
 import { isValidMotionProp, motion, MotionProps } from 'framer-motion';
 import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
+import { Layout } from '../../components';
+import { Lyrics } from '../../components/Lyrics';
 import {
   Artist,
   RegularArtistFragment,
@@ -71,104 +74,132 @@ export const Home = () => {
   const topTracks = topArtistsAndTracksData?.getTopArtistsAndTracks?.tracks;
   if (meLoading || topArtistsAndTracksLoading) return null;
   return (
-    <Grid h="100vh" templateColumns="270px auto" color="white">
-      <List
-        overflowY="auto"
-        backgroundColor="green.600"
-        color="rgba(255, 255, 255, 0.603)"
-        css={{
-          '&::-webkit-scrollbar': {
-            width: 0,
-          },
-          '&::-webkit-scrollbar-track': {
-            width: 0,
-          },
-          '&::-webkit-scrollbar-thumb': {},
-        }}
-      >
-        {topArtists &&
-          topArtists.map((artist) => (
-            <ListItem
-              px={3}
-              py={1}
-              backgroundColor={
-                selectedArtist?.spotifyId === artist.spotifyId
-                  ? 'green.700'
-                  : undefined
-              }
-              color={
-                selectedArtist?.spotifyId === artist.spotifyId
-                  ? 'rgba(255, 255, 255, 0.849)'
-                  : undefined
-              }
-              _hover={{
-                cursor: 'pointer',
-                backgroundColor: 'green.700',
-                color: 'rgba(255, 255, 255, 0.849)',
-              }}
-              onClick={() => handleSelectArtist(artist)}
-              key={artist.spotifyId}
-            >
-              {artist.name}
-            </ListItem>
-          ))}
-      </List>
-      <Box display="flex">
-        <MotionBox
-          initial={{ width: 0 }}
-          transition={{ type: 'just' }}
-          animate={
-            selectedArtist &&
-            topTracks?.filter(
-              (track) => track.artistId === selectedArtist?.spotifyId
-            ).length !== 0
-              ? 'open'
-              : 'closed'
-          }
-          variants={TrackBarVariants}
-          backgroundColor="green.700"
+    <Layout>
+      <Grid height="100%" templateColumns="270px auto" color="white">
+        <List
+          overflowY="auto"
+          backgroundColor="green.600"
+          color="rgba(255, 255, 255, 0.603)"
+          css={{
+            '&::-webkit-scrollbar': {
+              width: 0,
+            },
+            '&::-webkit-scrollbar-track': {
+              width: 0,
+            },
+            '&::-webkit-scrollbar-thumb': {},
+          }}
         >
-          <List w={250} color="rgba(255, 255, 255, 0.603)">
-            {topTracks &&
-              topTracks
-                .filter((track) => track.artistId === selectedArtist?.spotifyId)
-                .map((track) => (
-                  <ListItem
-                    py={1}
-                    px={2}
-                    backgroundColor={
-                      selectedTrack?.spotifyId === track.spotifyId
-                        ? 'green.600'
-                        : undefined
-                    }
-                    color={
-                      selectedTrack?.spotifyId === track.spotifyId
-                        ? 'rgba(255, 255, 255, 0.849)'
-                        : undefined
-                    }
-                    _hover={{
-                      cursor: 'pointer',
-                      backgroundColor: 'green.600',
-                      color: 'rgba(255, 255, 255, 0.849)',
-                    }}
-                    isTruncated
-                    textOverflow="ellipsis"
-                    onClick={() => {
-                      handleSelectTrack(track);
-                    }}
-                    key={track.spotifyId}
-                  >
-                    {track.name}
-                  </ListItem>
-                ))}
-          </List>
-        </MotionBox>
-        <Box textAlign="center" pt={1} w="100%" backgroundColor="#2a3631">
-          {selectedTrack &&
-            selectedArtist &&
-            `"${selectedTrack.name}" by ${selectedArtist.name}`}
+          {topArtists &&
+            topArtists.map((artist) => (
+              <ListItem
+                px={3}
+                py={1}
+                backgroundColor={
+                  selectedArtist?.spotifyId === artist.spotifyId
+                    ? 'green.700'
+                    : undefined
+                }
+                color={
+                  selectedArtist?.spotifyId === artist.spotifyId
+                    ? 'rgba(255, 255, 255, 0.849)'
+                    : undefined
+                }
+                _hover={{
+                  cursor: 'pointer',
+                  backgroundColor: 'green.700',
+                  color: 'rgba(255, 255, 255, 0.849)',
+                }}
+                onClick={() => handleSelectArtist(artist)}
+                key={artist.spotifyId}
+              >
+                {artist.name}
+              </ListItem>
+            ))}
+        </List>
+        <Box display="flex">
+          <MotionBox
+            initial={{ width: 0 }}
+            transition={{ type: 'just' }}
+            animate={
+              selectedArtist &&
+              topTracks?.filter(
+                (track) => track.artistId === selectedArtist?.spotifyId
+              ).length !== 0
+                ? 'open'
+                : 'closed'
+            }
+            variants={TrackBarVariants}
+            backgroundColor="green.700"
+          >
+            <List w={250} color="rgba(255, 255, 255, 0.603)">
+              {topTracks &&
+                topTracks
+                  .filter(
+                    (track) => track.artistId === selectedArtist?.spotifyId
+                  )
+                  .map((track) => (
+                    <ListItem
+                      py={1}
+                      px={2}
+                      backgroundColor={
+                        selectedTrack?.spotifyId === track.spotifyId
+                          ? 'green.600'
+                          : undefined
+                      }
+                      color={
+                        selectedTrack?.spotifyId === track.spotifyId
+                          ? 'rgba(255, 255, 255, 0.849)'
+                          : undefined
+                      }
+                      _hover={{
+                        cursor: 'pointer',
+                        backgroundColor: 'green.600',
+                        color: 'rgba(255, 255, 255, 0.849)',
+                      }}
+                      isTruncated
+                      textOverflow="ellipsis"
+                      onClick={() => {
+                        handleSelectTrack(track);
+                      }}
+                      key={track.spotifyId}
+                    >
+                      {track.name}
+                    </ListItem>
+                  ))}
+            </List>
+          </MotionBox>
+          <Box
+            h="calc(100vh - 47px)"
+            overflowY="auto"
+            css={{
+              '&::-webkit-scrollbar': {
+                width: 0,
+              },
+              '&::-webkit-scrollbar-track': {
+                width: 0,
+              },
+              '&::-webkit-scrollbar-thumb': {},
+            }}
+            textAlign="center"
+            pt={1}
+            w="100%"
+            backgroundColor="#202925"
+          >
+            {selectedTrack && selectedArtist && (
+              <>
+                <Text fontWeight="bold" fontSize="lg">
+                  {`"${selectedTrack.name}" by ${selectedArtist.name}`}
+                </Text>
+                <Lyrics
+                  selectedArtist={selectedArtist}
+                  selectedTrack={selectedTrack}
+                />
+              </>
+            )}
+          </Box>
         </Box>
-      </Box>
-    </Grid>
+      </Grid>
+    </Layout>
   );
 };

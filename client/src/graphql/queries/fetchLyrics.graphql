@@ -1,0 +1,3 @@
+query FetchLyrics($songName: String!) {
+  fetchLyrics(songName: $songName)
+}

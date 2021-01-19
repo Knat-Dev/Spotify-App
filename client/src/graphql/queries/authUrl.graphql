@@ -1,0 +1,3 @@
+query AuthUrl {
+  authUrl
+}

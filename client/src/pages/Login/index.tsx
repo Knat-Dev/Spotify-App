@@ -1,31 +1,33 @@
 import { Button, Flex, Spinner, Text } from '@chakra-ui/react';
 import queryString from 'query-string';
-import React, { FC, useEffect } from 'react';
-import { Redirect, RouteComponentProps } from 'react-router-dom';
+import React, { FC, useEffect, useState } from 'react';
+import { RouteComponentProps } from 'react-router-dom';
 import {
+  AuthUrlDocument,
+  AuthUrlQuery,
+  AuthUrlQueryVariables,
   MeDocument,
   MeQuery,
   useLoginMutation,
-  useMeQuery,
 } from '../../graphql/generated';
-import { getAccessToken, setAccessToken } from '../../utils/accessToken';
+import { setAccessToken } from '../../utils/accessToken';
 
 export const Login: FC<RouteComponentProps> = ({ location, history }) => {
-  const [login] = useLoginMutation();
-  //   const { data: meData } = useMeQuery({ skip: !getAccessToken() });
-
-  const handleRedirect = () => {
-    const client_id = 'd2f15d7bdcb3471e91fe2880071ad811';
-    const redirect_uri = 'http://localhost:3000/login';
-    const query = queryString.stringify({
-      client_id,
-      redirect_uri,
-      response_type: 'code',
-      scope: encodeURIComponent(
-        'user-read-private user-read-email user-top-read'
-      ),
-    });
-    window.location.href = `https://accounts.spotify.com/authorize?${query}`;
+  const [login, { client }] = useLoginMutation();
+  const [loadingAuthUrl, setLoadingAuthUrl] = useState(false);
+  const handleRedirect = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
+    try {
+      setLoadingAuthUrl(true);
+      const response = await client.query<AuthUrlQuery, AuthUrlQueryVariables>({
+        query: AuthUrlDocument,
+      });
+      setLoadingAuthUrl(false);
+      window.location.href = response.data.authUrl;
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   useEffect(() => {
@@ -85,6 +87,7 @@ export const Login: FC<RouteComponentProps> = ({ location, history }) => {
           Spotify Datazone
         </Text>
         <Button
+          isLoading={loadingAuthUrl}
           colorScheme="green"
           mb={1}
           borderRadius={20}

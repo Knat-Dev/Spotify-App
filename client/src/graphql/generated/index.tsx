@@ -15,12 +15,19 @@ export type Scalars = {
 
 export type Query = {
   __typename?: 'Query';
+  authUrl: Scalars['String'];
   hello: Scalars['String'];
   users: Array<User>;
   me?: Maybe<User>;
   topArtists: Array<Artist>;
   topTracks: Array<Track>;
   getTopArtistsAndTracks?: Maybe<TopArtistsAndTracks>;
+  fetchLyrics: Scalars['String'];
+};
+
+
+export type QueryFetchLyricsArgs = {
+  songName: Scalars['String'];
 };
 
 export type User = {
@@ -111,6 +118,32 @@ export type LoginMutation = (
   ) }
 );
 
+export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type LogoutMutation = (
+  { __typename?: 'Mutation' }
+  & Pick<Mutation, 'logout'>
+);
+
+export type AuthUrlQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AuthUrlQuery = (
+  { __typename?: 'Query' }
+  & Pick<Query, 'authUrl'>
+);
+
+export type FetchLyricsQueryVariables = Exact<{
+  songName: Scalars['String'];
+}>;
+
+
+export type FetchLyricsQuery = (
+  { __typename?: 'Query' }
+  & Pick<Query, 'fetchLyrics'>
+);
+
 export type GetTopArtistsAndTracksQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -190,6 +223,96 @@ export function useLoginMutation(baseOptions?: Apollo.MutationHookOptions<LoginM
 export type LoginMutationHookResult = ReturnType<typeof useLoginMutation>;
 export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
 export type LoginMutationOptions = Apollo.BaseMutationOptions<LoginMutation, LoginMutationVariables>;
+export const LogoutDocument = gql`
+    mutation Logout {
+  logout
+}
+    `;
+export type LogoutMutationFn = Apollo.MutationFunction<LogoutMutation, LogoutMutationVariables>;
+
+/**
+ * __useLogoutMutation__
+ *
+ * To run a mutation, you first call `useLogoutMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLogoutMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [logoutMutation, { data, loading, error }] = useLogoutMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useLogoutMutation(baseOptions?: Apollo.MutationHookOptions<LogoutMutation, LogoutMutationVariables>) {
+        return Apollo.useMutation<LogoutMutation, LogoutMutationVariables>(LogoutDocument, baseOptions);
+      }
+export type LogoutMutationHookResult = ReturnType<typeof useLogoutMutation>;
+export type LogoutMutationResult = Apollo.MutationResult<LogoutMutation>;
+export type LogoutMutationOptions = Apollo.BaseMutationOptions<LogoutMutation, LogoutMutationVariables>;
+export const AuthUrlDocument = gql`
+    query AuthUrl {
+  authUrl
+}
+    `;
+
+/**
+ * __useAuthUrlQuery__
+ *
+ * To run a query within a React component, call `useAuthUrlQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAuthUrlQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAuthUrlQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useAuthUrlQuery(baseOptions?: Apollo.QueryHookOptions<AuthUrlQuery, AuthUrlQueryVariables>) {
+        return Apollo.useQuery<AuthUrlQuery, AuthUrlQueryVariables>(AuthUrlDocument, baseOptions);
+      }
+export function useAuthUrlLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AuthUrlQuery, AuthUrlQueryVariables>) {
+          return Apollo.useLazyQuery<AuthUrlQuery, AuthUrlQueryVariables>(AuthUrlDocument, baseOptions);
+        }
+export type AuthUrlQueryHookResult = ReturnType<typeof useAuthUrlQuery>;
+export type AuthUrlLazyQueryHookResult = ReturnType<typeof useAuthUrlLazyQuery>;
+export type AuthUrlQueryResult = Apollo.QueryResult<AuthUrlQuery, AuthUrlQueryVariables>;
+export const FetchLyricsDocument = gql`
+    query FetchLyrics($songName: String!) {
+  fetchLyrics(songName: $songName)
+}
+    `;
+
+/**
+ * __useFetchLyricsQuery__
+ *
+ * To run a query within a React component, call `useFetchLyricsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFetchLyricsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFetchLyricsQuery({
+ *   variables: {
+ *      songName: // value for 'songName'
+ *   },
+ * });
+ */
+export function useFetchLyricsQuery(baseOptions: Apollo.QueryHookOptions<FetchLyricsQuery, FetchLyricsQueryVariables>) {
+        return Apollo.useQuery<FetchLyricsQuery, FetchLyricsQueryVariables>(FetchLyricsDocument, baseOptions);
+      }
+export function useFetchLyricsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FetchLyricsQuery, FetchLyricsQueryVariables>) {
+          return Apollo.useLazyQuery<FetchLyricsQuery, FetchLyricsQueryVariables>(FetchLyricsDocument, baseOptions);
+        }
+export type FetchLyricsQueryHookResult = ReturnType<typeof useFetchLyricsQuery>;
+export type FetchLyricsLazyQueryHookResult = ReturnType<typeof useFetchLyricsLazyQuery>;
+export type FetchLyricsQueryResult = Apollo.QueryResult<FetchLyricsQuery, FetchLyricsQueryVariables>;
 export const GetTopArtistsAndTracksDocument = gql`
     query GetTopArtistsAndTracks {
   getTopArtistsAndTracks {

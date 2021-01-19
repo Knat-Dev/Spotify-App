@@ -15,6 +15,7 @@ import {
 	UseMiddleware,
 } from "type-graphql";
 import queryString from "query-string";
+import Genius from "genius-lyrics";
 import { User, UserModel } from "../../../models";
 import { Context } from "../../context";
 import {
@@ -54,6 +55,14 @@ class TopArtistsAndTracks {
 
 @Resolver(() => User)
 export class UserResolver {
+	@Query(() => String)
+	authUrl(): string {
+		return spotifyApi.createAuthorizeURL(
+			["user-read-private", " user-top-read"],
+			"123"
+		);
+	}
+
 	@Query(() => String)
 	@UseMiddleware(isAuthorized)
 	hello(@Ctx() { payload }: Context): string {
@@ -238,6 +247,24 @@ export class UserResolver {
 			artists,
 			tracks,
 		};
+	}
+
+	@Query(() => String)
+	async fetchLyrics(
+		@Arg("songName") songName: string
+		// @Arg("artistName") artistName: string
+	): Promise<string> {
+		const Client = new Genius.Client(`${process.env.GENIUS_CLIENT_SECRET}`);
+		const searches = await Client.songs.search(songName);
+		if (searches.length === 0) return "No results";
+		let lyrics = "";
+		while (!lyrics)
+			try {
+				lyrics = await searches[0].lyrics();
+			} catch (e) {
+				lyrics = "";
+			}
+		return lyrics;
 	}
 
 	@Mutation(() => Boolean)
