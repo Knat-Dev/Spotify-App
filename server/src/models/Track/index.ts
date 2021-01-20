@@ -19,6 +19,14 @@ export class Track {
 
 	@prop()
 	@Field(() => Float)
+	trackNumber: number;
+
+	@prop()
+	@Field(() => Float)
+	discNumber: number;
+
+	@prop()
+	@Field(() => Float)
 	durationMs: number;
 
 	@prop()

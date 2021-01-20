@@ -1,4 +1,7 @@
 fragment RegularArtist on Artist {
   spotifyId
   name
+  albums {
+    ...RegularAlbum
+  }
 }

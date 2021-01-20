@@ -21,12 +21,14 @@ export type Query = {
   me?: Maybe<User>;
   topArtists: Array<Artist>;
   topTracks: Array<Track>;
-  getTopArtistsAndTracks?: Maybe<TopArtistsAndTracks>;
   fetchLyrics: Scalars['String'];
+  currentPlayingTrack?: Maybe<Track>;
+  recentlyPlayed: Array<Track>;
 };
 
 
 export type QueryFetchLyricsArgs = {
+  artistName: Scalars['String'];
   songName: Scalars['String'];
 };
 
@@ -45,6 +47,8 @@ export type Artist = {
   genres: Array<Scalars['String']>;
   followers?: Maybe<Scalars['Float']>;
   images: Array<ImageType>;
+  albums: Array<Album>;
+  artistTopTracks: Array<Track>;
 };
 
 export type ImageType = {
@@ -54,18 +58,25 @@ export type ImageType = {
   width: Scalars['Int'];
 };
 
+export type Album = {
+  __typename?: 'Album';
+  spotifyId: Scalars['String'];
+  name: Scalars['String'];
+  releaseDate: Scalars['String'];
+  artistId: Scalars['String'];
+  images: Array<ImageType>;
+  tracks: Array<Track>;
+};
+
 export type Track = {
   __typename?: 'Track';
   spotifyId: Scalars['String'];
   name: Scalars['String'];
+  trackNumber: Scalars['Float'];
+  discNumber: Scalars['Float'];
   durationMs: Scalars['Float'];
   artistId: Scalars['String'];
-};
-
-export type TopArtistsAndTracks = {
-  __typename?: 'TopArtistsAndTracks';
-  artists: Array<Artist>;
-  tracks: Array<Track>;
+  artist: Artist;
 };
 
 export type Mutation = {
@@ -91,14 +102,27 @@ export type LoginResponse = {
   user?: Maybe<User>;
 };
 
+export type RegularAlbumFragment = (
+  { __typename?: 'Album' }
+  & Pick<Album, 'artistId' | 'name' | 'spotifyId' | 'releaseDate'>
+  & { tracks: Array<(
+    { __typename?: 'Track' }
+    & RegularTrackFragment
+  )> }
+);
+
 export type RegularArtistFragment = (
   { __typename?: 'Artist' }
   & Pick<Artist, 'spotifyId' | 'name'>
+  & { albums: Array<(
+    { __typename?: 'Album' }
+    & RegularAlbumFragment
+  )> }
 );
 
 export type RegularTrackFragment = (
   { __typename?: 'Track' }
-  & Pick<Track, 'spotifyId' | 'name' | 'artistId'>
+  & Pick<Track, 'spotifyId' | 'name' | 'trackNumber' | 'discNumber'>
 );
 
 export type LoginMutationVariables = Exact<{
@@ -134,31 +158,30 @@ export type AuthUrlQuery = (
   & Pick<Query, 'authUrl'>
 );
 
+export type CurrentPlayingTrackQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CurrentPlayingTrackQuery = (
+  { __typename?: 'Query' }
+  & { currentPlayingTrack?: Maybe<(
+    { __typename?: 'Track' }
+    & Pick<Track, 'spotifyId' | 'name'>
+    & { artist: (
+      { __typename?: 'Artist' }
+      & RegularArtistFragment
+    ) }
+  )> }
+);
+
 export type FetchLyricsQueryVariables = Exact<{
   songName: Scalars['String'];
+  artistName: Scalars['String'];
 }>;
 
 
 export type FetchLyricsQuery = (
   { __typename?: 'Query' }
   & Pick<Query, 'fetchLyrics'>
-);
-
-export type GetTopArtistsAndTracksQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetTopArtistsAndTracksQuery = (
-  { __typename?: 'Query' }
-  & { getTopArtistsAndTracks?: Maybe<(
-    { __typename?: 'TopArtistsAndTracks' }
-    & { artists: Array<(
-      { __typename?: 'Artist' }
-      & RegularArtistFragment
-    )>, tracks: Array<(
-      { __typename?: 'Track' }
-      & RegularTrackFragment
-    )> }
-  )> }
 );
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
@@ -172,19 +195,56 @@ export type MeQuery = (
   )> }
 );
 
-export const RegularArtistFragmentDoc = gql`
-    fragment RegularArtist on Artist {
-  spotifyId
-  name
-}
-    `;
+export type TopArtistsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type TopArtistsQuery = (
+  { __typename?: 'Query' }
+  & { topArtists: Array<(
+    { __typename?: 'Artist' }
+    & RegularArtistFragment
+  )> }
+);
+
+export type TopTracksQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type TopTracksQuery = (
+  { __typename?: 'Query' }
+  & { topTracks: Array<(
+    { __typename?: 'Track' }
+    & Pick<Track, 'spotifyId' | 'name' | 'artistId'>
+  )> }
+);
+
 export const RegularTrackFragmentDoc = gql`
     fragment RegularTrack on Track {
   spotifyId
   name
-  artistId
+  trackNumber
+  discNumber
 }
     `;
+export const RegularAlbumFragmentDoc = gql`
+    fragment RegularAlbum on Album {
+  artistId
+  name
+  spotifyId
+  releaseDate
+  tracks {
+    ...RegularTrack
+  }
+}
+    ${RegularTrackFragmentDoc}`;
+export const RegularArtistFragmentDoc = gql`
+    fragment RegularArtist on Artist {
+  spotifyId
+  name
+  albums {
+    ...RegularAlbum
+  }
+}
+    ${RegularAlbumFragmentDoc}`;
 export const LoginDocument = gql`
     mutation Login($code: String!) {
   login(code: $code) {
@@ -282,9 +342,45 @@ export function useAuthUrlLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Au
 export type AuthUrlQueryHookResult = ReturnType<typeof useAuthUrlQuery>;
 export type AuthUrlLazyQueryHookResult = ReturnType<typeof useAuthUrlLazyQuery>;
 export type AuthUrlQueryResult = Apollo.QueryResult<AuthUrlQuery, AuthUrlQueryVariables>;
+export const CurrentPlayingTrackDocument = gql`
+    query CurrentPlayingTrack {
+  currentPlayingTrack {
+    spotifyId
+    name
+    artist {
+      ...RegularArtist
+    }
+  }
+}
+    ${RegularArtistFragmentDoc}`;
+
+/**
+ * __useCurrentPlayingTrackQuery__
+ *
+ * To run a query within a React component, call `useCurrentPlayingTrackQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCurrentPlayingTrackQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCurrentPlayingTrackQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useCurrentPlayingTrackQuery(baseOptions?: Apollo.QueryHookOptions<CurrentPlayingTrackQuery, CurrentPlayingTrackQueryVariables>) {
+        return Apollo.useQuery<CurrentPlayingTrackQuery, CurrentPlayingTrackQueryVariables>(CurrentPlayingTrackDocument, baseOptions);
+      }
+export function useCurrentPlayingTrackLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CurrentPlayingTrackQuery, CurrentPlayingTrackQueryVariables>) {
+          return Apollo.useLazyQuery<CurrentPlayingTrackQuery, CurrentPlayingTrackQueryVariables>(CurrentPlayingTrackDocument, baseOptions);
+        }
+export type CurrentPlayingTrackQueryHookResult = ReturnType<typeof useCurrentPlayingTrackQuery>;
+export type CurrentPlayingTrackLazyQueryHookResult = ReturnType<typeof useCurrentPlayingTrackLazyQuery>;
+export type CurrentPlayingTrackQueryResult = Apollo.QueryResult<CurrentPlayingTrackQuery, CurrentPlayingTrackQueryVariables>;
 export const FetchLyricsDocument = gql`
-    query FetchLyrics($songName: String!) {
-  fetchLyrics(songName: $songName)
+    query FetchLyrics($songName: String!, $artistName: String!) {
+  fetchLyrics(songName: $songName, artistName: $artistName)
 }
     `;
 
@@ -301,6 +397,7 @@ export const FetchLyricsDocument = gql`
  * const { data, loading, error } = useFetchLyricsQuery({
  *   variables: {
  *      songName: // value for 'songName'
+ *      artistName: // value for 'artistName'
  *   },
  * });
  */
@@ -313,44 +410,6 @@ export function useFetchLyricsLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
 export type FetchLyricsQueryHookResult = ReturnType<typeof useFetchLyricsQuery>;
 export type FetchLyricsLazyQueryHookResult = ReturnType<typeof useFetchLyricsLazyQuery>;
 export type FetchLyricsQueryResult = Apollo.QueryResult<FetchLyricsQuery, FetchLyricsQueryVariables>;
-export const GetTopArtistsAndTracksDocument = gql`
-    query GetTopArtistsAndTracks {
-  getTopArtistsAndTracks {
-    artists {
-      ...RegularArtist
-    }
-    tracks {
-      ...RegularTrack
-    }
-  }
-}
-    ${RegularArtistFragmentDoc}
-${RegularTrackFragmentDoc}`;
-
-/**
- * __useGetTopArtistsAndTracksQuery__
- *
- * To run a query within a React component, call `useGetTopArtistsAndTracksQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetTopArtistsAndTracksQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetTopArtistsAndTracksQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetTopArtistsAndTracksQuery(baseOptions?: Apollo.QueryHookOptions<GetTopArtistsAndTracksQuery, GetTopArtistsAndTracksQueryVariables>) {
-        return Apollo.useQuery<GetTopArtistsAndTracksQuery, GetTopArtistsAndTracksQueryVariables>(GetTopArtistsAndTracksDocument, baseOptions);
-      }
-export function useGetTopArtistsAndTracksLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTopArtistsAndTracksQuery, GetTopArtistsAndTracksQueryVariables>) {
-          return Apollo.useLazyQuery<GetTopArtistsAndTracksQuery, GetTopArtistsAndTracksQueryVariables>(GetTopArtistsAndTracksDocument, baseOptions);
-        }
-export type GetTopArtistsAndTracksQueryHookResult = ReturnType<typeof useGetTopArtistsAndTracksQuery>;
-export type GetTopArtistsAndTracksLazyQueryHookResult = ReturnType<typeof useGetTopArtistsAndTracksLazyQuery>;
-export type GetTopArtistsAndTracksQueryResult = Apollo.QueryResult<GetTopArtistsAndTracksQuery, GetTopArtistsAndTracksQueryVariables>;
 export const MeDocument = gql`
     query Me {
   me {
@@ -386,3 +445,69 @@ export function useMeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQuery
 export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
+export const TopArtistsDocument = gql`
+    query TopArtists {
+  topArtists {
+    ...RegularArtist
+  }
+}
+    ${RegularArtistFragmentDoc}`;
+
+/**
+ * __useTopArtistsQuery__
+ *
+ * To run a query within a React component, call `useTopArtistsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTopArtistsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTopArtistsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useTopArtistsQuery(baseOptions?: Apollo.QueryHookOptions<TopArtistsQuery, TopArtistsQueryVariables>) {
+        return Apollo.useQuery<TopArtistsQuery, TopArtistsQueryVariables>(TopArtistsDocument, baseOptions);
+      }
+export function useTopArtistsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TopArtistsQuery, TopArtistsQueryVariables>) {
+          return Apollo.useLazyQuery<TopArtistsQuery, TopArtistsQueryVariables>(TopArtistsDocument, baseOptions);
+        }
+export type TopArtistsQueryHookResult = ReturnType<typeof useTopArtistsQuery>;
+export type TopArtistsLazyQueryHookResult = ReturnType<typeof useTopArtistsLazyQuery>;
+export type TopArtistsQueryResult = Apollo.QueryResult<TopArtistsQuery, TopArtistsQueryVariables>;
+export const TopTracksDocument = gql`
+    query TopTracks {
+  topTracks {
+    spotifyId
+    name
+    artistId
+  }
+}
+    `;
+
+/**
+ * __useTopTracksQuery__
+ *
+ * To run a query within a React component, call `useTopTracksQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTopTracksQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTopTracksQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useTopTracksQuery(baseOptions?: Apollo.QueryHookOptions<TopTracksQuery, TopTracksQueryVariables>) {
+        return Apollo.useQuery<TopTracksQuery, TopTracksQueryVariables>(TopTracksDocument, baseOptions);
+      }
+export function useTopTracksLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TopTracksQuery, TopTracksQueryVariables>) {
+          return Apollo.useLazyQuery<TopTracksQuery, TopTracksQueryVariables>(TopTracksDocument, baseOptions);
+        }
+export type TopTracksQueryHookResult = ReturnType<typeof useTopTracksQuery>;
+export type TopTracksLazyQueryHookResult = ReturnType<typeof useTopTracksLazyQuery>;
+export type TopTracksQueryResult = Apollo.QueryResult<TopTracksQuery, TopTracksQueryVariables>;

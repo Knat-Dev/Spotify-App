@@ -49,7 +49,7 @@ const tokenRefreshLink = new TokenRefreshLink({
     }
   },
   fetchAccessToken: async (): Promise<Response> => {
-    return fetch('/refresh', {
+    return fetch('http://localhost:5000/refresh', {
       credentials: 'include',
       method: 'POST',
     });

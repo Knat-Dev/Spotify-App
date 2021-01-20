@@ -1,40 +1,27 @@
 import { DocumentType, mongoose } from "@typegoose/typegoose";
-import { hash, compare } from "bcryptjs";
-import { Error } from "mongoose";
 import { verify } from "jsonwebtoken";
 import {
 	Arg,
 	Ctx,
 	Field,
-	FieldResolver,
 	Mutation,
 	ObjectType,
 	Query,
 	Resolver,
-	Root,
 	UseMiddleware,
 } from "type-graphql";
-import queryString from "query-string";
-import Genius from "genius-lyrics";
 import { User, UserModel } from "../../../models";
-import { Context } from "../../context";
+import { Artist } from "../../../models/Artist";
+import { Track } from "../../../models/Track";
 import {
 	createAccessToken,
 	createRefreshToken,
 	isAuthorized,
 	sendRefreshToken,
 } from "../../../util";
-import axios from "axios";
-import SpotifyWebApi from "spotify-web-api-node";
-import { Artist } from "../../../models/Artist";
-import { Track } from "../../../models/Track";
+import spotifyApi from "../../../util/Spotify";
+import { Context } from "../../context";
 
-const credentials = {
-	clientId: process.env.SPOTIFY_CLIENT_ID,
-	clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-	redirectUri: "http://localhost:3000/login",
-};
-const spotifyApi = new SpotifyWebApi(credentials);
 @ObjectType()
 class LoginResponse {
 	@Field()
@@ -44,21 +31,16 @@ class LoginResponse {
 	user?: User;
 }
 
-@ObjectType()
-class TopArtistsAndTracks {
-	@Field(() => [Artist])
-	artists: Artist[];
-
-	@Field(() => [Track])
-	tracks: Track[];
-}
-
 @Resolver(() => User)
 export class UserResolver {
 	@Query(() => String)
 	authUrl(): string {
 		return spotifyApi.createAuthorizeURL(
-			["user-read-private", " user-top-read"],
+			[
+				"user-top-read",
+				"user-read-currently-playing",
+				"user-read-recently-played",
+			],
 			"123"
 		);
 	}
@@ -178,93 +160,6 @@ export class UserResolver {
 		);
 		if (newUser) return await callback(newUser.id);
 		else return [];
-	}
-
-	@Query(() => [Artist])
-	@UseMiddleware(isAuthorized)
-	async topArtists(@Ctx() { payload }: Context): Promise<Artist[]> {
-		if (!payload?.userId) return [];
-		const user = await UserModel.findById(payload.userId);
-		if (user) {
-			spotifyApi.setAccessToken(user.spotifyAccessToken);
-			try {
-				const spotifyArtists = await spotifyApi.getMyTopArtists({ limit: 100 });
-				const artists: Artist[] = spotifyArtists.body.items.map((artist) => ({
-					followers: artist.followers.total,
-					spotifyId: artist.id,
-					name: artist.name,
-					images: artist.images,
-					genres: artist.genres,
-				}));
-				return artists;
-			} catch (e) {
-				if (e.body.error.message === "The access token expired") {
-					return await this.refresh(user, this.topArtists);
-				}
-				console.log(e);
-			}
-		}
-		return [];
-	}
-
-	@Query(() => [Track])
-	@UseMiddleware(isAuthorized)
-	async topTracks(@Ctx() { payload }: Context): Promise<Track[]> {
-		if (!payload?.userId) return [];
-		const user = await UserModel.findById(payload.userId);
-		if (user) {
-			spotifyApi.setAccessToken(user.spotifyAccessToken);
-			try {
-				const spotifyTracks = await spotifyApi.getMyTopTracks({ limit: 200 });
-				const tracks: Track[] = spotifyTracks.body.items.map((track) => {
-					return {
-						durationMs: track.duration_ms,
-						spotifyId: track.id,
-						name: track.name,
-						artistId: track.artists[0].id,
-					};
-				});
-				return tracks;
-			} catch (e) {
-				if (e.body.error.message === "The access token expired") {
-					return await this.refresh(user, this.topTracks);
-				}
-				console.log(e);
-			}
-		}
-		return [];
-	}
-
-	@Query(() => TopArtistsAndTracks, { nullable: true })
-	@UseMiddleware(isAuthorized)
-	async getTopArtistsAndTracks(
-		@Ctx() ctx: Context
-	): Promise<TopArtistsAndTracks | null> {
-		if (!ctx.payload?.userId) return null;
-		const artists = await this.topArtists(ctx);
-		const tracks = await this.topTracks(ctx);
-		return {
-			artists,
-			tracks,
-		};
-	}
-
-	@Query(() => String)
-	async fetchLyrics(
-		@Arg("songName") songName: string
-		// @Arg("artistName") artistName: string
-	): Promise<string> {
-		const Client = new Genius.Client(`${process.env.GENIUS_CLIENT_SECRET}`);
-		const searches = await Client.songs.search(songName);
-		if (searches.length === 0) return "No results";
-		let lyrics = "";
-		while (!lyrics)
-			try {
-				lyrics = await searches[0].lyrics();
-			} catch (e) {
-				lyrics = "";
-			}
-		return lyrics;
 	}
 
 	@Mutation(() => Boolean)

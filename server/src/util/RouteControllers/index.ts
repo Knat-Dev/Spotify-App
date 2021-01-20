@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { verify } from "jsonwebtoken";
 import { createAccessToken, createRefreshToken, sendRefreshToken } from "..";
 import { User, UserModel } from "../../models";
+import spotifyApi from "../Spotify";
 
 export const refresh = async (
 	req: Request,
@@ -19,6 +20,13 @@ export const refresh = async (
 
 	const user: User | null = await UserModel.findById(payload.userId);
 	if (!user) return res.send({ ok: false, accessToken: "" });
+
+	spotifyApi.setAccessToken(user?.spotifyAccessToken);
+	spotifyApi.setRefreshToken(user?.spotifyRefreshToken);
+	const response = await spotifyApi.refreshAccessToken();
+	await UserModel.findByIdAndUpdate(user.id, {
+		spotifyAccessToken: response.body.access_token,
+	});
 
 	if (user.tokenVersion !== payload.tokenVersion)
 		return res.send({ ok: false, accessToken: "" });

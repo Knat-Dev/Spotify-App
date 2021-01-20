@@ -11,7 +11,7 @@
 	},
 	"plugins": ["@typescript-eslint"],
 	"rules": {
-		"indent": ["error", "tab"],
+		"@typescript-eslint/indent": ["warn", "tab"],
 		"linebreak-style": ["error", "windows"],
 		"quotes": ["error", "double"],
 		"semi": ["error", "always"]

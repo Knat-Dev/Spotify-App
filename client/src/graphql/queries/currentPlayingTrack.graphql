@@ -1,0 +1,9 @@
+query CurrentPlayingTrack {
+  currentPlayingTrack {
+    spotifyId
+    name
+    artist {
+      ...RegularArtist
+    }
+  }
+}

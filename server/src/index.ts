@@ -5,7 +5,12 @@ import mongoose, { ConnectionOptions } from "mongoose";
 import express from "express";
 import { ApolloServer } from "apollo-server-express";
 import http from "http";
-import { UserResolver } from "./graphql";
+import {
+	AlbumResolver,
+	ArtistResolver,
+	TrackResolver,
+	UserResolver,
+} from "./graphql";
 import { buildSchema } from "type-graphql";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -37,8 +42,13 @@ const mongooseConnectionOptions: ConnectionOptions = {
 	console.log("MongoDB connection started.");
 	// Setting up Apollo Server to work with the schema
 	const apollo = new ApolloServer({
-		schema: await buildSchema({ resolvers: [UserResolver] }),
+		schema: await buildSchema({
+			resolvers: [UserResolver, ArtistResolver, TrackResolver, AlbumResolver],
+		}),
 		context: ({ req, res }) => ({ req, res }),
+		subscriptions: {
+			path: "/api",
+		},
 		playground: {
 			settings: {
 				"request.credentials": "include",
@@ -48,7 +58,7 @@ const mongooseConnectionOptions: ConnectionOptions = {
 	apollo.applyMiddleware({ app, path: "/api", cors: false });
 	const httpServer = http.createServer(app);
 	apollo.installSubscriptionHandlers(httpServer); // Starting up Express Server
-	app.listen(port, () => {
+	httpServer.listen(port, () => {
 		console.log(`GraphQL playground running at http://localhost:${port}/api`);
 	});
 })();

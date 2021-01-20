@@ -1,0 +1,5 @@
+query TopArtists {
+  topArtists {
+    ...RegularArtist
+  }
+}

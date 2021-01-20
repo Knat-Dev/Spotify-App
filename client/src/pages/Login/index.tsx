@@ -39,19 +39,23 @@ export const Login: FC<RouteComponentProps> = ({ location, history }) => {
         const response = await login({
           variables: { code: query.code },
           update: (store, { data }) => {
-            if (data?.login.user)
+            if (data?.login.user) {
               store.writeQuery<MeQuery>({
                 query: MeDocument,
                 data: {
                   me: { ...data.login.user },
                 },
               });
+              if (data?.login.accessToken) {
+                setAccessToken(data.login.accessToken);
+                history.push('/');
+              }
+            }
           },
         });
-        if (response.data?.login.accessToken) {
-          setAccessToken(response.data.login.accessToken);
-          history.push('/');
-        } else history.push('/login');
+        if (response.errors || !response.data?.login.accessToken) {
+          history.push('/login');
+        }
       }
     })();
   }, [location.search, login, history]);

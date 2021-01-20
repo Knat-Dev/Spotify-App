@@ -26,7 +26,7 @@ export const isAuthorized: MiddlewareFn<Context> = (
 
 export const createAccessToken = (user: User): string => {
 	return sign({ userId: user.id }, `${process.env.JWT_ACCESS_TOKEN_SECRET}`, {
-		expiresIn: "1h",
+		expiresIn: "45m",
 	});
 };
 

@@ -1,0 +1,7 @@
+query TopTracks {
+  topTracks {
+    spotifyId
+    name
+    artistId
+  }
+}

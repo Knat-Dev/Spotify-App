@@ -1,0 +1,9 @@
+fragment RegularAlbum on Album {
+  artistId
+  name
+  spotifyId
+  releaseDate
+  tracks {
+    ...RegularTrack
+  }
+}
