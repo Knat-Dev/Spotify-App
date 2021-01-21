@@ -8,3 +8,9 @@ client/yarn.lock
 server/package-lock.json
 server/yarn-error.log
 server/yarn.lock
+server/.env.production
+client/.env.production
+client/firebase.json
+client/.firebaserc
+client/.firebase/
+server/deploy.sh

@@ -29,16 +29,14 @@ const mongooseConnectionOptions: ConnectionOptions = {
 (async () => {
 	// Express App
 	const app = express();
+	app.set("trust proxy", 1);
 	// Express Middleware
-	app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+	app.use(cors({ credentials: true, origin: process.env.ORIGIN_URL }));
 	app.use(cookieParser());
 	// Express Routes
 	app.post("/refresh", refresh);
 	// Creating MongoDB Connection
-	await mongoose.connect(
-		"mongodb://127.0.0.1:27017/spotify-lyrics",
-		mongooseConnectionOptions
-	);
+	await mongoose.connect(`${process.env.MONGO_URL}`, mongooseConnectionOptions);
 	console.log("MongoDB connection started.");
 	// Setting up Apollo Server to work with the schema
 	const apollo = new ApolloServer({

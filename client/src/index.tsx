@@ -3,13 +3,9 @@ import {
   ApolloLink,
   ApolloProvider,
   createHttpLink,
-  DocumentNode,
   InMemoryCache,
-  split,
 } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
-import { WebSocketLink } from '@apollo/client/link/ws';
-import { getMainDefinition } from '@apollo/client/utilities';
 import { ChakraProvider } from '@chakra-ui/react';
 import { TokenRefreshLink } from 'apollo-link-token-refresh';
 import jwtDecode from 'jwt-decode';
@@ -19,7 +15,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { getAccessToken, setAccessToken } from './utils/accessToken';
 const httpLink = createHttpLink({
-  uri: process.env.REACT_APP_HOST + '/api',
+  uri: process.env.REACT_APP_API_URL,
   credentials: 'include',
 });
 
@@ -49,7 +45,7 @@ const tokenRefreshLink = new TokenRefreshLink({
     }
   },
   fetchAccessToken: async (): Promise<Response> => {
-    return fetch('http://localhost:5000/refresh', {
+    return fetch(process.env.REACT_APP_REFRESH_URL, {
       credentials: 'include',
       method: 'POST',
     });
@@ -63,39 +59,16 @@ const tokenRefreshLink = new TokenRefreshLink({
   },
 });
 
-const wsLink = new WebSocketLink({
-  // uri: `wss://api.knat.dev/graphql`,
-  uri: `${process.env.REACT_APP_WS}`,
-  options: {
-    lazy: true,
-    reconnect: true,
-    reconnectionAttempts: 10,
-    connectionParams: {
-      token: getAccessToken(),
-    },
-  },
-});
-
-const isSubscriptionOperation = ({ query }: { query: DocumentNode }) => {
-  const definition = getMainDefinition(query);
-  return (
-    definition.kind === 'OperationDefinition' &&
-    definition.operation === 'subscription'
-  );
-};
-
-const requestLink = split(isSubscriptionOperation, wsLink, httpLink);
-
 const client = new ApolloClient({
   cache: new InMemoryCache(),
-  link: ApolloLink.from([tokenRefreshLink, authLink, requestLink]),
+  link: ApolloLink.from([tokenRefreshLink, authLink, httpLink]),
 });
 
 const Index: FC = () => {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     (async () => {
-      const response = await fetch(`${process.env.REACT_APP_HOST}/refresh`, {
+      const response = await fetch(process.env.REACT_APP_REFRESH_URL, {
         method: 'POST',
         credentials: 'include',
       });

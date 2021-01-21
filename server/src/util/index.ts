@@ -43,6 +43,8 @@ export const createRefreshToken = (user: User): string => {
 export const sendRefreshToken = (res: Response, token: string): void => {
 	res.cookie("nwid", token, {
 		httpOnly: true,
-		secure: process.env.NODE_ENV === "prod",
+		sameSite: "lax",
+		secure: process.env.NODE_ENV === "production",
+		domain: process.env.NODE_ENV === "production" ? ".knat.dev" : "localhost",
 	});
 };

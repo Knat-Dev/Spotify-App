@@ -57,19 +57,24 @@ export class TrackResolver {
 	}
 
 	@Query(() => String)
+	@UseMiddleware(isAuthorized)
 	async fetchLyrics(
 		@Arg("songName") songName: string,
 		@Arg("artistName") artistName: string
 	): Promise<string> {
 		const songNameFixed = songName.split("-")[0].trim();
-		const query = `${songNameFixed} by ${artistName}`;
+		const query = `${songNameFixed} - ${artistName}`;
 		const Client = new Genius.Client(`${process.env.GENIUS_CLIENT_SECRET}`);
 		const searches = await Client.songs.search(query);
 		if (searches.length === 0) return "No results";
 		let lyrics = "";
-		while (!lyrics)
+		let searchIndex = 0;
+		while (!lyrics || /[а-яА-ЯЁё]/.test(lyrics))
 			try {
-				lyrics = await searches[0].lyrics();
+				lyrics = await searches[searchIndex].lyrics();
+				if (/[а-яА-ЯЁё]/.test(lyrics)) {
+					lyrics = await searches[++searchIndex].lyrics();
+				}
 			} catch (e) {
 				lyrics = "";
 			}

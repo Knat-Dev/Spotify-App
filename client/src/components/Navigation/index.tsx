@@ -1,4 +1,3 @@
-import { useApolloClient } from '@apollo/client';
 import { Button, Flex, Text } from '@chakra-ui/react';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
@@ -10,7 +9,7 @@ import { setAccessToken } from '../../utils/accessToken';
 
 export const Navigation = () => {
   const [logout, { client }] = useLogoutMutation();
-  const { data, loading } = useCurrentPlayingTrackQuery({ pollInterval: 1000 });
+  const { data } = useCurrentPlayingTrackQuery({ pollInterval: 10000 });
   const history = useHistory();
 
   return (
