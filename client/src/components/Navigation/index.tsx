@@ -1,13 +1,19 @@
-import { Button, Flex, Text } from '@chakra-ui/react';
-import React from 'react';
+import { Box, Button, Flex, Text } from '@chakra-ui/react';
+import React, { FC } from 'react';
 import { useHistory } from 'react-router-dom';
 import {
   useCurrentPlayingTrackQuery,
   useLogoutMutation,
 } from '../../graphql/generated';
 import { setAccessToken } from '../../utils/accessToken';
-
-export const Navigation = () => {
+import { AiOutlineMenu } from 'react-icons/ai';
+interface Props {
+  isOpen: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+  desktop: boolean;
+}
+export const Navigation: FC<Props> = ({ isOpen, onOpen, onClose, desktop }) => {
   const [logout, { client }] = useLogoutMutation();
   const { data } = useCurrentPlayingTrackQuery({ pollInterval: 10000 });
   const history = useHistory();
@@ -22,7 +28,24 @@ export const Navigation = () => {
       align="center"
       justifyContent="space-between"
     >
-      <Text>Spotify</Text>
+      <Flex align="center">
+        {!desktop && (
+          <Box
+            mr={2}
+            p={1}
+            borderRadius="50%"
+            transition="all 0.1s ease"
+            cursor="pointer"
+            _hover={{ backgroundColor: 'rgba(255, 255, 255, 0.397)' }}
+            onClick={() => (isOpen ? onClose() : onOpen())}
+          >
+            <Text fontSize={16}>
+              <AiOutlineMenu />
+            </Text>
+          </Box>
+        )}
+        <Text>Spotify</Text>
+      </Flex>
       <Flex align="center" justify="center">
         {data?.currentPlayingTrack?.name && (
           <Text

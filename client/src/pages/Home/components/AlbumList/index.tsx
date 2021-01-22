@@ -4,7 +4,6 @@ import { MotionBox } from '../../../../components/MotionBox';
 import {
   RegularAlbumFragment,
   RegularArtistFragment,
-  RegularTrackFragment,
 } from '../../../../graphql/generated';
 
 interface Props {

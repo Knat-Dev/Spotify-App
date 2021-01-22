@@ -1,8 +1,16 @@
-import { Box, Flex, Grid, Spinner, Text } from '@chakra-ui/react';
+import {
+  Box,
+  Flex,
+  Spinner,
+  Text,
+  useDisclosure,
+  useMediaQuery,
+} from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 import { Layout } from '../../components';
 import { Lyrics } from '../../components/Lyrics';
+import { MobileDrawer } from '../../components/MobileDrawer';
 import {
   RegularAlbumFragment,
   RegularArtistFragment,
@@ -13,11 +21,13 @@ import {
 import { AlbumList, ArtistList, TrackList } from './components';
 
 export const Home = () => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const { data, loading: meLoading } = useMeQuery();
   const {
     data: topArtistsData,
     loading: topArtistsLoading,
   } = useTopArtistsQuery();
+  const [desktop] = useMediaQuery('(min-width: 1280px)');
 
   const [
     selectedArtist,
@@ -60,56 +70,79 @@ export const Home = () => {
       </Flex>
     );
   return (
-    <Layout>
-      <Grid height="100%" templateColumns="200px auto" color="white">
-        <ArtistList
-          handleSelectArtist={handleSelectArtist}
-          selectedArtist={selectedArtist}
-          topArtists={topArtists}
-        />
-        <Box display="flex" h="100%">
-          <AlbumList
-            handleSelectAlbum={handleSelectAlbum}
-            selectedAlbum={selectedAlbum}
-            selectedArtist={selectedArtist}
-          />
-          <TrackList
-            handleSelectTrack={handleSelectTrack}
-            selectedArtist={selectedArtist}
-            selectedTrack={selectedTrack}
-            selectedAlbum={selectedAlbum}
-          />
-          <Box
-            h="calc(100vh - 47px)"
-            overflowY="auto"
-            css={{
-              '&::-webkit-scrollbar': {
-                width: 0,
-              },
-              '&::-webkit-scrollbar-track': {
-                width: 0,
-              },
-              '&::-webkit-scrollbar-thumb': {},
-            }}
-            textAlign="center"
-            pt={1}
-            w="100%"
-            backgroundColor="#202925"
-          >
-            {selectedTrack && selectedAlbum && selectedArtist && (
-              <>
-                <Text fontWeight="bold" fontSize="lg">
-                  {`"${selectedTrack.name}" by ${selectedArtist.name}`}
-                </Text>
-                <Lyrics
-                  selectedArtist={selectedArtist}
-                  selectedTrack={selectedTrack}
-                />
-              </>
-            )}
+    <>
+      <Layout
+        isOpen={isOpen}
+        onOpen={onOpen}
+        onClose={onClose}
+        desktop={desktop}
+      >
+        <Flex height="100%" color="white">
+          {desktop && (
+            <>
+              <ArtistList
+                handleSelectArtist={handleSelectArtist}
+                selectedArtist={selectedArtist}
+                topArtists={topArtists}
+              />
+              <AlbumList
+                handleSelectAlbum={handleSelectAlbum}
+                selectedAlbum={selectedAlbum}
+                selectedArtist={selectedArtist}
+              />
+              <TrackList
+                handleSelectTrack={handleSelectTrack}
+                selectedArtist={selectedArtist}
+                selectedTrack={selectedTrack}
+                selectedAlbum={selectedAlbum}
+              />
+            </>
+          )}
+          <Box display="flex" h="100%" flexGrow={1}>
+            <Box
+              h="calc(100vh - 47px)"
+              overflowY="auto"
+              css={{
+                '&::-webkit-scrollbar': {
+                  width: 0,
+                },
+                '&::-webkit-scrollbar-track': {
+                  width: 0,
+                },
+                '&::-webkit-scrollbar-thumb': {},
+              }}
+              textAlign="center"
+              pt={1}
+              w="100%"
+              backgroundColor="#202925"
+            >
+              {selectedTrack && selectedAlbum && selectedArtist && (
+                <>
+                  <Text fontWeight="bold" fontSize="lg">
+                    {`"${selectedTrack.name}" by ${selectedArtist.name}`}
+                  </Text>
+                  <Lyrics
+                    selectedArtist={selectedArtist}
+                    selectedTrack={selectedTrack}
+                  />
+                </>
+              )}
+            </Box>
           </Box>
-        </Box>
-      </Grid>
-    </Layout>
+        </Flex>
+      </Layout>
+      <MobileDrawer
+        selectedArtist={selectedArtist}
+        topArtists={topArtists}
+        isOpen={isOpen}
+        onClose={onClose}
+        onOpen={onOpen}
+        handleSelectArtist={handleSelectArtist}
+        selectedAlbum={selectedAlbum}
+        handleSelectAlbum={handleSelectAlbum}
+        selectedTrack={selectedTrack}
+        handleSelectedTrack={handleSelectTrack}
+      />
+    </>
   );
 };

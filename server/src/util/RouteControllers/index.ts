@@ -8,7 +8,7 @@ export const refresh = async (
 	req: Request,
 	res: Response
 ): Promise<Response> => {
-	const token = req.cookies.nwid;
+	const token = req.cookies.rtoken;
 	if (!token) return res.send({ ok: false, accessToken: "" });
 
 	let payload: any;

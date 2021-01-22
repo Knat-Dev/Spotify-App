@@ -1,4 +1,4 @@
-import { Box, List, ListItem, Text } from '@chakra-ui/react';
+import { List, ListItem } from '@chakra-ui/react';
 import React, { FC } from 'react';
 import { RegularArtistFragment } from '../../../../graphql/generated';
 

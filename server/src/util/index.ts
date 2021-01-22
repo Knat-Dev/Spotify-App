@@ -41,7 +41,7 @@ export const createRefreshToken = (user: User): string => {
 };
 
 export const sendRefreshToken = (res: Response, token: string): void => {
-	res.cookie("nwid", token, {
+	res.cookie("rtoken", token, {
 		httpOnly: true,
 		sameSite: "lax",
 		secure: process.env.NODE_ENV === "production",
